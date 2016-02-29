@@ -25,6 +25,7 @@ conn = 0
 
 class SizedTimedRotatingFileHandler(handlers.TimedRotatingFileHandler):
     """
+    Taken from here: http://www.blog.pythonlibrary.org/2014/02/11/python-how-to-create-rotating-logs/
     Handler for logging to a set of files, which switches from one file
     to the next when the current file reaches a certain size, or at certain
     timed intervals
