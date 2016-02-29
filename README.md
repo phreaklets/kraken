@@ -7,6 +7,6 @@ It will create a SQLite db (kraken.db) where it will store the metadata around t
 
 It will create a log file (kraken.log) with details of what it's doing.
 
-It will sniff on eth0.
+It will sniff on eth0. Based on the awesomeness that is scapy.
 
 (c) phreaklets
