@@ -101,10 +101,10 @@ class DbConnector:
         logging.debug("Initializing DB: %s" % name)
         try:
             with self.get_cursor() as cur:
-                cur.execute('''CREATE TABLE nautilus(ethsrc text, dstip text, srcip text, hostname text, srcport integer, dstport integer, ttl text, timefirstseen text, timelastseen text)''')
+                cur.execute('''CREATE TABLE nautilus(ethsrc text, dstip text, srcip text, pof text, srcport integer, dstport integer, ttl text, timefirstseen text, timelastseen text)''')
         except sqlite3.Error, e:
             logging.debug("initDB failed: %s" % e)
-            
+
     def __init__(self, dbname):
         logging.debug("Connecting to DB %s" % dbname)
         if (self.conn is None):
@@ -141,10 +141,6 @@ class DbConnector:
     def addttl(self, ethsrc, ttl):
         with self.get_cursor() as cur:
             cur.execute("UPDATE nautilus SET ttl=? WHERE ethsrc=?", (str(ttl), str(ethsrc)))
-
-    def addhostname(self, hostname, ethsrc):
-        with self.get_cursor() as cur:
-            cur.execute("UPDATE nautilus SET hostname=? WHERE ethsrc=?", (str(hostname), str(ethsrc)))
 
     def refreshtimestamp(self, ethsrc):
         with self.get_cursor() as cur:
