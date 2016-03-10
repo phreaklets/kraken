@@ -11,13 +11,13 @@ from scapy.all import load_module,Ether,IP,TCP,sniff #Import needed modules from
 import sys
 import sqlite3
 import datetime
-import dns.resolver
-from dns import reversename
 from netaddr import IPAddress
-import netaddr
 import os
 import time
 import getopt
+import requests
+import simplejson
+from pprint import pprint
 #from scapy.layers import http
 
 dbconn = None
@@ -83,6 +83,8 @@ def log_setup(log_file=None):
     log_handler.setFormatter(formatter)
     logger.addHandler(log_handler)
     logger.setLevel(logging.INFO)
+    logging.getLogger("requests").setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 class DbConnector:
     conn = None
@@ -101,7 +103,7 @@ class DbConnector:
         logging.debug("Initializing DB: %s" % name)
         try:
             with self.get_cursor() as cur:
-                cur.execute('''CREATE TABLE nautilus(ethsrc text, dstip text, srcip text, pof text, srcport integer, dstport integer, ttl text, timefirstseen text, timelastseen text)''')
+                cur.execute('''CREATE TABLE nautilus(srcip text, ethsrc text, dstip text, vendor text, srcport integer, dstport integer, ttl text, timefirstseen text, timelastseen text)''')
         except sqlite3.Error, e:
             logging.debug("initDB failed: %s" % e)
 
@@ -119,32 +121,32 @@ class DbConnector:
             except sqlite3.Error, e:
                 logging.error("DB connection failed: %s" % e)
 
-    def isethsrcindb(self, ethsrc):
+    def isipaddrindb(self, ipaddr):
         try:
             with self.get_cursor() as cur:
-                cur.execute("select ethsrc from nautilus where ethsrc=:ethernetsrc", {"ethernetsrc":str(ethsrc)})
+                cur.execute("select srcip from nautilus where srcip=:ipaddress", {"ipaddress":str(ipaddr)})
                 row = cur.fetchone()
 
                 if row is not None:
-                    logging.debug("Ethernet source address %s is in the database" % ethsrc)
+                    logging.debug("IP source address %s is in the database" % ipaddr)
                     return True
                 else:
-                    logging.debug("Ethernet source address %s is not in the database" % ethsrc)
+                    logging.debug("IP source address %s is not in the database" % ipaddr)
                     return False
         except sqlite3.Error, e:
             logging.debug("isipaddrindb failed: %s" % e)
 
-    def addhost(self, ethsrc, srcip, dstip, sport, dport):
+    def addhost(self, ethsrc, vendor, srcip, dstip, sport, dport):
         with self.get_cursor() as cur:
-            cur.execute("INSERT INTO nautilus VALUES (?,?,?,?,?,?,?,?,?)", (str(ethsrc), str(dstip),str(srcip),"",sport,dport,"",datetime.datetime.now(),datetime.datetime.now()))
+            cur.execute("INSERT INTO nautilus VALUES (?,?,?,?,?,?,?,?,?)", (str(srcip), str(ethsrc), str(dstip), str(vendor), sport, dport, "", datetime.datetime.now(), datetime.datetime.now()))
 
-    def addttl(self, ethsrc, ttl):
+    def addttl(self, ipaddr, ttl):
         with self.get_cursor() as cur:
-            cur.execute("UPDATE nautilus SET ttl=? WHERE ethsrc=?", (str(ttl), str(ethsrc)))
+            cur.execute("UPDATE nautilus SET ttl=? WHERE srcip=?", (str(ttl), str(ipaddr)))
 
-    def refreshtimestamp(self, ethsrc):
+    def refreshtimestamp(self, ipaddr):
         with self.get_cursor() as cur:
-            cur.execute("UPDATE nautilus SET timelastseen=? WHERE ethsrc=?", (datetime.datetime.now(), str(ethsrc)))
+            cur.execute("UPDATE nautilus SET timelastseen=? WHERE srcip=?", (datetime.datetime.now(), str(ipaddr)))
 
     def close_conn(self):
         self.conn.close()
@@ -157,6 +159,25 @@ def getttl(dbconn, ttl, ip, ethsrc):
     elif ttl < 128 and ttl > 113:
         logging.debug("pkt most likely from Windows-based system")
         dbconn.addttl(ethsrc, "Windows")
+
+def vendorlookup(ethsrc):
+    vendor_eth = ethsrc.replace(":", "-")
+    url = "https://www.macvendorlookup.com/api/v2/%s" % vendor_eth
+    jsondata = ""
+    try:
+        headers = {'Accept': 'application/json'}
+        response = requests.get(url, headers=headers)
+        if response is not None:
+            try:
+                jsondata = response.json()
+            except simplejson.decoder.JSONDecodeError:
+                pass
+    except requests.exceptions.RequestException or requests.exceptions.ConnectionError:
+        logging.error("Requests error occured")
+    if jsondata:
+        return jsondata[0]['company']
+    else:
+        return None
 
 def threaded_sniff_target(q):
     global m_finished
@@ -186,9 +207,10 @@ def threaded_sniff():
                 # Check if src IP addr is RFC1918 and is unicast
                 if (IPAddress(ipsrc).is_private() and IPAddress(ipsrc).is_unicast()):
                     logging.debug("Processing IP packet from the private internal range")
-                    if not dbconn.isethsrcindb(ethsrc):
-                        logging.info("Looking up info on IP Address: %s MAC Address %s" % (ipsrc, ethsrc))
-                        dbconn.addhost(ethsrc, ipsrc, ipdst, sport, dport)
+                    if not dbconn.isipaddrindb(ipsrc):
+                        vendor = vendorlookup(ethsrc)
+                        logging.info("Looking up info on IP Address: %s MAC Address: %s Vendor: %s" % (ipsrc, ethsrc, vendor))
+                        dbconn.addhost(ethsrc, vendor, ipsrc, ipdst, sport, dport)
 
                         getttl(dbconn, pkt.getlayer(IP).ttl, ipsrc, ethsrc)
                     else:
