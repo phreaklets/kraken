@@ -103,7 +103,7 @@ class DbConnector:
         logging.debug("Initializing DB: %s" % name)
         try:
             with self.get_cursor() as cur:
-                cur.execute('''CREATE TABLE nautilus(srcip text, ethsrc text, dstip text, vendor text, srcport integer, dstport integer, ttl text, timefirstseen text, timelastseen text)''')
+                cur.execute('''CREATE TABLE nautilus(srcip text, ethsrc text, dstip text, vendor text, srcport integer, dstport integer, ttl text, pof text, timefirstseen text, timelastseen text)''')
         except sqlite3.Error, e:
             logging.debug("initDB failed: %s" % e)
 
@@ -136,9 +136,9 @@ class DbConnector:
         except sqlite3.Error, e:
             logging.debug("isipaddrindb failed: %s" % e)
 
-    def addhost(self, ethsrc, vendor, srcip, dstip, sport, dport):
+    def addhost(self, ethsrc, vendor, srcip, dstip, sport, dport, pof):
         with self.get_cursor() as cur:
-            cur.execute("INSERT INTO nautilus VALUES (?,?,?,?,?,?,?,?,?)", (str(srcip), str(ethsrc), str(dstip), str(vendor), sport, dport, "", datetime.datetime.now(), datetime.datetime.now()))
+            cur.execute("INSERT INTO nautilus VALUES (?,?,?,?,?,?,?,?,?,?)", (str(srcip), str(ethsrc), str(dstip), str(vendor), sport, dport, "", str(pof), datetime.datetime.now(), datetime.datetime.now()))
 
     def addttl(self, ipaddr, ttl):
         with self.get_cursor() as cur:
@@ -210,7 +210,8 @@ def threaded_sniff():
                     if not dbconn.isipaddrindb(ipsrc):
                         vendor = vendorlookup(ethsrc)
                         logging.info("Looking up info on IP Address: %s MAC Address: %s Vendor: %s" % (ipsrc, ethsrc, vendor))
-                        dbconn.addhost(ethsrc, vendor, ipsrc, ipdst, sport, dport)
+
+                        dbconn.addhost(ethsrc, vendor, ipsrc, ipdst, sport, dport, p0f(pkt))
 
                         getttl(dbconn, pkt.getlayer(IP).ttl, ipsrc, ethsrc)
                     else:
