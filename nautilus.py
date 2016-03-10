@@ -191,7 +191,7 @@ def threaded_sniff():
                 if (IPAddress(ipsrc).is_private() and IPAddress(ipsrc).is_unicast()):
                     logging.debug("Processing IP packet from the private internal range")
                     if not dbconn.isethsrcindb(ethsrc):
-                        logging.info("Looking up info on IP Address: %s" % ipsrc)
+                        logging.info("Looking up info on IP Address: %s MAC Address %s" % (ipsrc, ethsrc))
                         dbconn.addhost(ethsrc, ipsrc, ipdst, sport, dport)
 
                         getttl(dbconn, pkt.getlayer(IP).ttl, ipsrc, ethsrc)
