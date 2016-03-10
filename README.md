@@ -9,4 +9,18 @@ It will create a log file (kraken.log) with details of what it's doing.
 
 It will sniff on eth0. Based on the awesomeness that is scapy.
 
+# nautilus
+The mini-kraken! ;-) 
+
+Actually, this tool is the flip-side of the Kraken. It passively sniffs the network and records all the private IP addresses that it sees. It stores the MAC address and source IP address of a packet along with the destionation IP address, source port, destination port, TTL (deciding if it's Linux or Windows), the timestamp of when the device was first observed and the continously refreshed timestamp of when the device was last seen.
+
+Nautilus stores all this information in a SQLite3 database called "nautilus.db". It outputs a log to "nautilus.log".
+
+Usage:
+
+sudo python nautilus.py -i eth0
+
+Planned:
+- p0f integration
+
 (c) phreaklets
