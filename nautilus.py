@@ -181,7 +181,7 @@ def vendorlookup(ethsrc):
 
 def threaded_sniff_target(q):
     global m_finished
-    sniff(iface = m_iface, count = 0, filter = "tcp", prn = lambda x : q.put(x))
+    sniff(iface = m_iface, count = 0, store = 0, filter = "tcp", prn = lambda x : q.put(x))
     m_finished = True
 
 def threaded_sniff():
@@ -197,8 +197,6 @@ def threaded_sniff():
             pkt = q.get(timeout = 1)
             if pkt.haslayer(TCP):
                 logging.debug('Handling IP address: %s' % pkt.getlayer(IP).src)
-                #prnp0f(pkt)
-                #print("")
                 ethsrc = pkt.getlayer(Ether).src
                 ipsrc = pkt.getlayer(IP).src
                 ipdst = pkt.getlayer(IP).dst
@@ -215,7 +213,7 @@ def threaded_sniff():
 
                         getttl(dbconn, pkt.getlayer(IP).ttl, ipsrc, ethsrc)
                     else:
-                        logging.debug("MAC address %s already in DB, refreshing timestamp" % ethsrc)
+                        logging.debug("IP address %s already in DB, refreshing timestamp" % ipsrc)
                         dbconn.refreshtimestamp(ethsrc)
             else:
                 logging.debug("Non-TCPIP packet")
