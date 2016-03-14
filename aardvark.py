@@ -1,3 +1,7 @@
+# aardvark (c) 2016 phreaklets
+# Inspired by:
+# - http://askldjd.com/2014/01/15/a-reasonably-fast-python-ip-sniffer/
+# - http://www.binarytides.com/python-packet-sniffer-code-linux/
 import getopt
 import datetime
 import time
