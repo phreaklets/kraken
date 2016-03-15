@@ -2,6 +2,7 @@
 # Inspired by:
 # - http://askldjd.com/2014/01/15/a-reasonably-fast-python-ip-sniffer/
 # - http://www.binarytides.com/python-packet-sniffer-code-linux/
+
 import getopt
 import datetime
 import time
@@ -20,6 +21,7 @@ import socket, struct, os, array
 from scapy.all import ETH_P_ALL
 from scapy.all import select
 from scapy.all import MTU
+from scapy.all import load_module
 
 class SizedTimedRotatingFileHandler(handlers.TimedRotatingFileHandler):
     """
@@ -177,27 +179,29 @@ class IPSniff:
         iplen = fields[2]
  
         ttl = fields[5]
+        protocol = fields[6]
 
-        ip_src = payload[12:16]
-        ip_dst = payload[16:20]
-        ip_frame = payload[0:iplen]
+        if protocol == 6:
+            ip_src = payload[12:16]
+            ip_dst = payload[16:20]
+            ip_frame = payload[0:iplen]
  
-        t = iph_length
-        tcp_header = payload[t:t+20]
+            t = iph_length
+            tcp_header = payload[t:t+20]
  
-        #now unpack them :)
-        tcph = struct.unpack('!HHLLBBHHH' , tcp_header)
+            #now unpack them :)
+            tcph = struct.unpack('!HHLLBBHHH' , tcp_header)
              
-        src_port = tcph[0]
-        dst_port = tcph[1]
+            src_port = tcph[0]
+            dst_port = tcph[1]
 
-        if pkt_type == socket.PACKET_OUTGOING:
-            if self.on_ip_outgoing is not None:
-                self.on_ip_outgoing(src_eth_addr, ip_src, ip_dst, src_port, dst_port, ttl, ip_frame)
+            if pkt_type == socket.PACKET_OUTGOING:
+                if self.on_ip_outgoing is not None:
+                    self.on_ip_outgoing(src_eth_addr, ip_src, ip_dst, src_port, dst_port, ttl, ip_frame)
  
-        else:
-            if self.on_ip_incoming is not None:
-                self.on_ip_incoming(src_eth_addr, ip_src, ip_dst, src_port, dst_port, ttl, ip_frame)
+            else:
+                if self.on_ip_incoming is not None:
+                    self.on_ip_incoming(src_eth_addr, ip_src, ip_dst, src_port, dst_port, ttl, ip_frame)
 
     #Convert a string of 6 characters of ethernet address into a dash separated hex string
     def eth_addr (self, a) :
@@ -205,10 +209,13 @@ class IPSniff:
         return b
  
     def recv(self):
+        load_module("p0f")
         while True:
  
             pkt, sa_ll = self.ins.recvfrom(MTU)
  
+            prnp0f(pkt)
+
             if type == socket.PACKET_OUTGOING and self.on_ip_outgoing is None:
                 continue
             elif self.on_ip_outgoing is None:
@@ -276,7 +283,7 @@ def test_incoming_callback(src_eth_addr, src, dst, src_port, dst_port, ttl, fram
             getttl(dbconn, ttl, ipsrc)
         else:
             logging.debug("IP address %s already in DB, refreshing timestamp" % ipsrc)
-            dbconn.refreshtimestamp(src_eth_addr)
+            dbconn.refreshtimestamp(ipsrc)
     else:
         logging.debug("Non-TCPIP packet")
     logging.debug("incoming - src_eth_addr=%s src=%s, dst=%s, frame len = %d"
@@ -306,6 +313,8 @@ def main(argv):
     global dbconn
     iface = ""
     log_setup("aardvark.log")
+    print("Sniffer starting...")
+    logging.info("Sniffer starting...")
     dbconn = DbConnector("aardvark.db") 
 
     if len(sys.argv) >= 2:
@@ -332,3 +341,4 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+
