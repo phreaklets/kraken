@@ -23,4 +23,8 @@ sudo python nautilus.py -i eth0
 Planned:
 - p0f integration
 
+# aardvark
+
+High-speed network sniffer that passively sniffs the network and records all the private IP addresses that it sees.
+
 (c) phreaklets
