@@ -15,7 +15,6 @@ import os
 import time
 import getopt
 import requests
-import scapy_layers
 from pprint import pprint
 from blessings import Terminal
 from scapy_ssl_tls.ssl_tls import TLS
@@ -219,8 +218,8 @@ def threaded_sniff():
                             except:
                                 pass
 
-                    if pkt.haslayer(scapy_layers.TLS):
-                        tls_packet = pkt.getlayer(scapy_layers.TLS)
+                    if pkt.haslayer(TLS):
+                        tls_packet = pkt.getlayer(TLS)
                         tls_record = tls_packet.fields['records'][0]
                         tls_record_type = tls_packet.fields['records'][0].fields['content_type']
                         if tls_record_type == 0x17:
