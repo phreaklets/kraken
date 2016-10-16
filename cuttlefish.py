@@ -5,7 +5,7 @@ logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 from contextlib import contextmanager
 from threading import Thread
 from Queue import Queue, Empty
-from scapy.all import Ether,IP,UDP,ICMP,TCP,sniff #Import needed modules from scapy
+from scapy.all import Ether,IP,UDP,ICMP,TCP,DNS,sniff #Import needed modules from scapy
 import sys
 import sqlite3
 import datetime
@@ -14,7 +14,7 @@ import os
 import time
 import getopt
 import requests
-from blessings import Terminal
+from blessed import Terminal
 from scapy.layers import http
 from scapy.layers.ssl_tls import TLS
 
@@ -155,18 +155,29 @@ def threaded_sniff():
                     elif pkt_type == "ICMP":
                         print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "TTL", t.red("%d" % ttl), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst), "%s" % pkt_type
                         if pkt.getlayer(ICMP).type == 0x08:
-                            print t.move_right, t.move_right, "ICMP Message type", t.green("Echo request"), "Sequence number", t.cyan("%s" % pkt.getlayer(ICMP).seq)
+                            print t.move_right, t.move_right, t.move_right, t.move_right, "ICMP Message type", t.green("Echo request"), "Sequence number", t.cyan("%s" % pkt.getlayer(ICMP).seq)
                         elif pkt.getlayer(ICMP).type == 0x00:
-                            print t.move_right, t.move_right, "ICMP Message type", t.green("Echo response"), "Sequence number", t.cyan("%s" % pkt.getlayer(ICMP).seq)
+                            print t.move_right, t.move_right,t.move_right, t.move_right, "ICMP Message type", t.green("Echo response"), "Sequence number", t.cyan("%s" % pkt.getlayer(ICMP).seq)
                 else:
                     if pkt_type == "TCP" or pkt_type == "UDP":
                         print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "OS", t.red("%s" % ret_ttl), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst), "%s src port" % pkt_type, t.yellow("%s" % sport), "%s dst port" % pkt_type,  t.yellow("%s" % dport)
                     elif pkt_type == "ICMP":
                         print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "OS", t.red("%s" % ret_ttl), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst), "%s" % pkt_type
                         if pkt.getlayer(ICMP).type == 0x08:
-                            print t.move_right, t.move_right, "ICMP Message type", t.green("Echo request"), "Sequence number", t.cyan("%s" % pkt.getlayer(ICMP).seq)
+                            print t.move_right, t.move_right,t.move_right, t.move_right, "ICMP Message type", t.green("Echo request"), "Sequence number", t.cyan("%s" % pkt.getlayer(ICMP).seq)
                         elif pkt.getlayer(ICMP).type == 0x00:
-                            print t.move_right, t.move_right, "ICMP Message type", t.green("Echo response"), "Sequence number", t.cyan("%s" % pkt.getlayer(ICMP).seq)
+                            print t.move_right, t.move_right,t.move_right, t.move_right, "ICMP Message type", t.green("Echo response"), "Sequence number", t.cyan("%s" % pkt.getlayer(ICMP).seq)
+                # Print out additional information if the packet contains HTTP requests or responses
+                if pkt.haslayer(DNS):
+                    dns_layer = pkt.getlayer(DNS)
+                    if 'an' in dns_layer.fields:
+                        if dns_layer.fields['an'] is not None:
+                            if dns_layer.fields['an'].fields['type'] == 0x01:
+                                print t.move_right, t.move_right, "DNS response", t.yellow("A"), "record for hostname", t.cyan("%s" % dns_layer.fields['an'].fields['rrname'][:-1]), "has IP address", t.green("%s" % str(dns_layer.fields['an'].fields['rdata']))
+                        elif 'qd' in dns_layer.fields:
+                            if dns_layer.fields['qd'].fields['qtype'] == 0x01:
+                                print t.move_right, t.move_right, "DNS request", t.yellow("A"), "record for hostname", t.cyan("%s" % dns_layer.fields['qd'].fields['qname'][:-1])
+
                 # Print out additional information if the packet contains HTTP requests or responses
                 if pkt.haslayer(http.HTTPRequest):
                     http_pkt = pkt.getlayer(http.HTTPRequest)
@@ -187,13 +198,13 @@ def threaded_sniff():
                         try:
                             tls_version = tls_record['TLS Record'].fields['version']
                             if tls_version == 0x303:
-                                print t.move_right, t.move_right, "Application Data from TLS version", t.yellow("v1.2")
+                                print t.move_right, t.move_right,t.move_right, t.move_right, "Application Data from TLS version", t.yellow("v1.2")
                             elif tls_version == 0x302:
-                                print t.move_right, t.move_right, "Application Data from TLS version", t.yellow("v1.1")
+                                print t.move_right, t.move_right,t.move_right, t.move_right, "Application Data from TLS version", t.yellow("v1.1")
                             elif tls_version == 0x301:
-                                print t.move_right, t.move_right, "Application Data from TLS version", t.yellow("v1.0")
+                                print t.move_right, t.move_right,t.move_right, t.move_right, "Application Data from TLS version", t.yellow("v1.0")
                             elif tls_version == 0x300:
-                                print t.move_right, t.move_right, "Application Data from SSL version", t.yellow("v3.0")
+                                print t.move_right, t.move_right,t.move_right, t.move_right, "Application Data from SSL version", t.yellow("v3.0")
                         except:
                             pass
                     elif tls_record_type == 0x16:
