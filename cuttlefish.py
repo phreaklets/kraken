@@ -159,6 +159,10 @@ def threaded_sniff():
                         print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "OS", t.red("%s" % ret_ttl), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst), "%s src port" % pkt_type, t.yellow("%s" % sport), "%s dst port" % pkt_type,  t.yellow("%s" % dport)
                     elif pkt_type == "ICMP":
                         print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "OS", t.red("%s" % ret_ttl), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst), "%s" % pkt_type
+                        if pkt.getlayer(ICMP).type == 0x08:
+                            print t.move_right, t.move_right, "ICMP Message type", t.green("Echo request"), "Sequence number", t.cyan("%s" % pkt.getlayer(ICMP).seq)
+                        elif pkt.getlayer(ICMP).type == 0x00:
+                            print t.move_right, t.move_right, "ICMP Message type", t.green("Echo response"), "Sequence number", t.cyan("%s" % pkt.getlayer(ICMP).seq)
                 # Print out additional information if the packet contains HTTP requests or responses
                 if pkt.haslayer(http.HTTPRequest):
                     http_pkt = pkt.getlayer(http.HTTPRequest)
