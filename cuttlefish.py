@@ -17,7 +17,7 @@ import getopt
 import requests
 from pprint import pprint
 from blessings import Terminal
-from scapy_ssl_tls.ssl_tls import TLS
+#from scapy_ssl_tls.ssl_tls import TLS
 from scapy.layers import http
 from scapy.layers.ssl_tls import *
 
