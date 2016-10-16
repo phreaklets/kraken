@@ -1,25 +1,22 @@
 # Cuttlefish colourized tshark/tcpdump (c) 2016 phreaklets
 import logging
-import logging.handlers as handlers
 # turn off those irritating IPv6 warning messages
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 from contextlib import contextmanager
 from threading import Thread
 from Queue import Queue, Empty
-from scapy.all import load_module,Ether,IP,UDP,ICMP,TCP,sniff #Import needed modules from scapy
+from scapy.all import Ether,IP,UDP,ICMP,TCP,sniff #Import needed modules from scapy
 import sys
 import sqlite3
 import datetime
-from netaddr import IPAddress
+#from netaddr import IPAddress
 import os
 import time
 import getopt
 import requests
-from pprint import pprint
 from blessings import Terminal
-#from scapy_ssl_tls.ssl_tls import TLS
 from scapy.layers import http
-from scapy.layers.ssl_tls import *
+from scapy.layers.ssl_tls import TLS
 
 dbconn = None
 m_iface = "eth1"
@@ -121,15 +118,24 @@ def threaded_sniff():
     time.sleep(1)
     t = Terminal()
     pkt_type = ""
+    ip_src = None
     
     while True:
         try:
             pkt = q.get(timeout = 1)
-            ethsrc = pkt.getlayer(Ether).src
-            ethdst = pkt.getlayer(Ether).dst
-            ipsrc = pkt.getlayer(IP).src
-            ipdst = pkt.getlayer(IP).dst
-            ttl = pkt.getlayer(IP).ttl
+            if pkt.haslayer(Ether):
+                ethsrc = pkt.getlayer(Ether).src
+                ethdst = pkt.getlayer(Ether).dst
+            else:
+                # Skip non-Ethernet packets
+                pass
+            if pkt.haslayer(IP):
+                ipsrc = pkt.getlayer(IP).src
+                ipdst = pkt.getlayer(IP).dst
+                ttl = pkt.getlayer(IP).ttl
+            else:
+                # Skip non-IP packets
+                pass
             if pkt.haslayer(TCP):
                 sport = pkt.getlayer(TCP).sport
                 dport = pkt.getlayer(TCP).dport
@@ -143,7 +149,7 @@ def threaded_sniff():
             if not dbconn.isipaddrindb(ipsrc):
                 # OS detection based on TTL
                 ret_ttl = getttl(ttl)
-                if ret_ttl  is None:
+                if ret_ttl is None:
                     if pkt_type == "TCP" or pkt_type == "UDP":
                         print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "TTL", t.red("%d" % ttl), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst), "%s src port" % pkt_type, t.yellow("%s" % sport), "%s dst port" % pkt_type,  t.yellow("%s" % dport)
                     elif pkt_type == "ICMP":
