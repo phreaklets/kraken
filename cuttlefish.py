@@ -87,10 +87,12 @@ class DbConnector:
 
 def getttl(ttl):
     # Get TTL
-    if ttl < 64 and ttl > 49:
+    if ttl == 64:
         return "Linux"
-    elif ttl < 128 and ttl > 113:
+    elif ttl == 128:
         return "Windows"
+    elif ttl == 254:
+        return "Solaris"
     else:
         return None
     
@@ -127,12 +129,16 @@ def threaded_sniff():
                 ethdst = pkt.getlayer(Ether).dst
                 ipsrc = pkt.getlayer(IP).src
                 ipdst = pkt.getlayer(IP).dst
+                ttl = pkt.getlayer(IP).ttl
                 sport = pkt.getlayer(TCP).sport
                 dport = pkt.getlayer(TCP).dport
 
                 if not dbconn.isipaddrindb(ipsrc):
-                    print "T", t.blue("%s" % datetime.datetime.now()), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst), "TCP src port", t.yellow("%s" % sport), "TCP dst port",  t.yellow("%s" % dport)
-
+                    ret_ttl = getttl(ttl)
+                    if ret_ttl  is None:
+                        print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "TTL", t.red("%d" % ttl), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst), "TCP src port", t.yellow("%s" % sport), "TCP dst port",  t.yellow("%s" % dport)
+                    else:
+                        print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "OS", t.red("%s" % ret_ttl), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst), "TCP src port", t.yellow("%s" % sport), "TCP dst port",  t.yellow("%s" % dport)
                     if sport == 80 or dport == 80:
                         if pkt.haslayer(http.HTTPRequest):
                             http_pkt = pkt.getlayer(http.HTTPRequest)
@@ -152,13 +158,13 @@ def threaded_sniff():
                             try:
                                 tls_version = tls_record['TLS Record'].fields['version']
                                 if tls_version == 0x303:
-                                    print t.move_right, t.move_right, "TLS version", t.yellow("v1.2")
+                                    print t.move_right, t.move_right, "Application Data from TLS version", t.yellow("v1.2")
                                 if tls_version == 0x302:
-                                    print t.move_right, t.move_right, "TLS version", t.yellow("v1.1")
+                                    print t.move_right, t.move_right, "Application Data from TLS version", t.yellow("v1.1")
                                 if tls_version == 0x301:
-                                    print t.move_right, t.move_right, "TLS version", t.yellow("v1.0")
+                                    print t.move_right, t.move_right, "Application Data from TLS version", t.yellow("v1.0")
                                 if tls_version == 0x300:
-                                    print t.move_right, t.move_right, "SSL version", t.yellow("v3.0")
+                                    print t.move_right, t.move_right, "Application Data from SSL version", t.yellow("v3.0")
                             except:
                                 pass
                         elif tls_record_type == 0x16:
