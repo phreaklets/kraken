@@ -19,8 +19,9 @@ from scapy.layers import http
 from scapy.layers.ssl_tls import TLS
 
 dbconn = None
-m_iface = "eth1"
+m_iface = "eth0"
 m_finished = False
+m_filter = ""
 conn = 0
 
 class DbConnector:
@@ -107,7 +108,7 @@ def vendorlookup(ethsrc):
 
 def threaded_sniff_target(q):
     global m_finished
-    sniff(iface = m_iface, count = 0, store = 0, prn = lambda x : q.put(x))
+    sniff(iface = m_iface, filter = m_filter, count = 0, store = 0, prn = lambda x : q.put(x))
     m_finished = True
 
 def threaded_sniff():
@@ -245,20 +246,23 @@ def threaded_sniff():
 def main(argv):
     global dbconn
     global m_iface
+    global m_filter
 
     dbconn = DbConnector("cuttlefish.db")
-    if len(sys.argv) >= 2:
+    if len(sys.argv) >= 5:
         try:
-            opts, args = getopt.getopt(argv,"hi:",["interface="])
+            opts, args = getopt.getopt(argv,"hi:f:",["interface=","filter="])
         except getopt.GetoptError:
-            print('cuttlefish.py -i <interface>')
+            print('cuttlefish.py -i <interface> -f <filter>')
             sys.exit(2)
         for opt, arg in opts:
             if opt == '-h':
-                print('cuttlefish.py -i <interface>')
+                print('cuttlefish.py -i <interface> -f <filter>')
                 sys.exit()
             elif opt in ("-i", "--interface"):
                 m_iface = arg
+            elif opt in ("-f", "--filter"):
+                m_filter = arg
             else:
                 print("Error in response")
                 sys.exit()
