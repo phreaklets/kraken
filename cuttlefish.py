@@ -192,52 +192,54 @@ def threaded_sniff():
                         
                 # Print out additional information if the packet is part of a TLS connection
                 if pkt.haslayer(TLS):
-                    tls_packet = pkt.getlayer(TLS)
-                    tls_record = tls_packet.fields['records'][0]
-                    tls_record_type = tls_packet.fields['records'][0].fields['content_type']
-                    if tls_record_type == 0x17:
-                        try:
-                            tls_version = tls_record['TLS Record'].fields['version']
-                            if tls_version == 0x303:
-                                print t.move_right, t.move_right,t.move_right, t.move_right, "Application Data from TLS version", t.yellow("v1.2")
-                            elif tls_version == 0x302:
-                                print t.move_right, t.move_right,t.move_right, t.move_right, "Application Data from TLS version", t.yellow("v1.1")
-                            elif tls_version == 0x301:
-                                print t.move_right, t.move_right,t.move_right, t.move_right, "Application Data from TLS version", t.yellow("v1.0")
-                            elif tls_version == 0x300:
-                                print t.move_right, t.move_right,t.move_right, t.move_right, "Application Data from SSL version", t.yellow("v3.0")
-                        except:
-                            pass
-                    elif tls_record_type == 0x16:
-                        for rec in tls_packet.fields['records']:
-                            #print rec['TLS Handshake'].fields['type']
+                    try:
+                        tls_packet = pkt.getlayer(TLS)
+                        tls_record = tls_packet.fields['records'][0]
+                        tls_record_type = tls_packet.fields['records'][0].fields['content_type']
+                        if tls_record_type == 0x17:
                             try:
-                                # ClientHello
-                                if rec['TLS Handshake'].fields['type'] == 1:
-                                    #print rec['TLS Client Hello'].fields['version']
-                                    tls_clienthello_version = tls_record['TLS Client Hello'].fields['version']
-                                    if tls_clienthello_version == 0x303:
-                                        print t.move_right, t.move_right, "Client Hello version", t.yellow("v1.2")
-                                    elif tls_clienthello_version == 0x302:
-                                        print t.move_right, t.move_right, "Client Hello version", t.yellow("v1.1")
-                                    elif tls_clienthello_version == 0x301:
-                                        print t.move_right, t.move_right, "Client Hello version", t.yellow("v1.0")
-                                    elif tls_clienthello_version == 0x300:
-                                        print t.move_right, t.move_right, "Client Hello version", t.yellow("v3.0")
-                                # ServerHello
-                                elif rec['TLS Handshake'].fields['type'] == 2:
-                                    #print rec['TLS Server Hello'].fields['version']
-                                    tls_serverhello_version = tls_record['TLS Server Hello'].fields['version']
-                                    if tls_serverhello_version == 0x303:
-                                        print t.move_right, t.move_right, "Server Hello version", t.yellow("v1.2")
-                                    elif tls_serverhello_version == 0x302:
-                                        print t.move_right, t.move_right, "Server Hello version", t.yellow("v1.1")
-                                    elif tls_serverhello_version == 0x301:
-                                        print t.move_right, t.move_right, "Server Hello version", t.yellow("v1.0")
-                                    elif tls_serverhello_version == 0x300:
-                                        print t.move_right, t.move_right, "Server Hello version", t.yellow("v3.0")
+                                tls_version = tls_record['TLS Record'].fields['version']
+                                if tls_version == 0x303:
+                                    print t.move_right, t.move_right,t.move_right, t.move_right, "Application Data from TLS version", t.yellow("v1.2")
+                                elif tls_version == 0x302:
+                                    print t.move_right, t.move_right,t.move_right, t.move_right, "Application Data from TLS version", t.yellow("v1.1")
+                                elif tls_version == 0x301:
+                                    print t.move_right, t.move_right,t.move_right, t.move_right, "Application Data from TLS version", t.yellow("v1.0")
+                                elif tls_version == 0x300:
+                                    print t.move_right, t.move_right,t.move_right, t.move_right, "Application Data from SSL version", t.yellow("v3.0")
                             except:
                                 pass
+                        elif tls_record_type == 0x16:
+                            for rec in tls_packet.fields['records']:
+                                try:
+                                    # ClientHello
+                                    if rec['TLS Handshake'].fields['type'] == 1:
+                                        #print rec['TLS Client Hello'].fields['version']
+                                        tls_clienthello_version = tls_record['TLS Client Hello'].fields['version']
+                                        if tls_clienthello_version == 0x303:
+                                            print t.move_right, t.move_right, "Client Hello version", t.yellow("v1.2")
+                                        elif tls_clienthello_version == 0x302:
+                                            print t.move_right, t.move_right, "Client Hello version", t.yellow("v1.1")
+                                        elif tls_clienthello_version == 0x301:
+                                            print t.move_right, t.move_right, "Client Hello version", t.yellow("v1.0")
+                                        elif tls_clienthello_version == 0x300:
+                                            print t.move_right, t.move_right, "Client Hello version", t.yellow("v3.0")
+                                    # ServerHello
+                                    elif rec['TLS Handshake'].fields['type'] == 2:
+                                        #print rec['TLS Server Hello'].fields['version']
+                                        tls_serverhello_version = tls_record['TLS Server Hello'].fields['version']
+                                        if tls_serverhello_version == 0x303:
+                                            print t.move_right, t.move_right, "Server Hello version", t.yellow("v1.2")
+                                        elif tls_serverhello_version == 0x302:
+                                            print t.move_right, t.move_right, "Server Hello version", t.yellow("v1.1")
+                                        elif tls_serverhello_version == 0x301:
+                                            print t.move_right, t.move_right, "Server Hello version", t.yellow("v1.0")
+                                        elif tls_serverhello_version == 0x300:
+                                            print t.move_right, t.move_right, "Server Hello version", t.yellow("v3.0")
+                                except:
+                                    pass
+                    except:
+                        pass
             else:
                 dbconn.refreshtimestamp(ethsrc)
         except Empty:
