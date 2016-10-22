@@ -145,24 +145,35 @@ def threaded_sniff():
                 sport = pkt.getlayer(UDP).sport
                 dport = pkt.getlayer(UDP).dport
                 pkt_type = "UDP"
-            elif pkt.haslayer(ICMP):
+                
+            if pkt.haslayer(DNS):
+                pkt_type = "DNS"
+                
+            if pkt.haslayer(ICMP):
                 pkt_type = "ICMP"
+                
+            if pkt.haslayer(http.HTTP):
+                pkt_type = "HTTP"
+                
+            if pkt.haslayer(TLS):
+                pkt_type = "TLS"
+                
             if not dbconn.isipaddrindb(ipsrc):
                 # OS detection based on TTL
                 ret_ttl = getttl(ttl)
                 if ret_ttl is None:
-                    if pkt_type == "TCP" or pkt_type == "UDP":
+                    if pkt.haslayer(TCP) or pkt.haslayer(UDP):
                         print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "TTL", t.red("%d" % ttl), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst), "%s src port" % pkt_type, t.yellow("%s" % sport), "%s dst port" % pkt_type,  t.yellow("%s" % dport)
-                    elif pkt_type == "ICMP":
+                    elif pkt.haslayer(ICMP):
                         print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "TTL", t.red("%d" % ttl), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst), "%s" % pkt_type
                         if pkt.getlayer(ICMP).type == 0x08:
                             print t.move_right, t.move_right, t.move_right, t.move_right, "ICMP Message type", t.green("Echo request"), "Sequence number", t.cyan("%s" % pkt.getlayer(ICMP).seq)
                         elif pkt.getlayer(ICMP).type == 0x00:
                             print t.move_right, t.move_right,t.move_right, t.move_right, "ICMP Message type", t.green("Echo response"), "Sequence number", t.cyan("%s" % pkt.getlayer(ICMP).seq)
                 else:
-                    if pkt_type == "TCP" or pkt_type == "UDP":
-                        print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "OS", t.red("%s" % ret_ttl), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst), "%s src port" % pkt_type, t.yellow("%s" % sport), "%s dst port" % pkt_type,  t.yellow("%s" % dport)
-                    elif pkt_type == "ICMP":
+                    if pkt.haslayer(TCP) or pkt.haslayer(UDP):
+                        print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), t.bold_magenta("%s" % pkt_type), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "OS", t.red("%s" % ret_ttl), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst), "%s src port" % pkt_type, t.yellow("%s" % sport), "%s dst port" % pkt_type,  t.yellow("%s" % dport)
+                    elif pkt.haslayer(ICMP):                        
                         print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "OS", t.red("%s" % ret_ttl), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst), "%s" % pkt_type
                         if pkt.getlayer(ICMP).type == 0x08:
                             print t.move_right, t.move_right,t.move_right, t.move_right, "ICMP Message type", t.green("Echo request"), "Sequence number", t.cyan("%s" % pkt.getlayer(ICMP).seq)
@@ -251,7 +262,7 @@ def main(argv):
     global m_filter
 
     dbconn = DbConnector("cuttlefish.db")
-    if len(sys.argv) >= 5:
+    if len(sys.argv) >= 2:
         try:
             opts, args = getopt.getopt(argv,"hi:f:",["interface=","filter="])
         except getopt.GetoptError:
