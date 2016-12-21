@@ -166,18 +166,18 @@ def threaded_sniff():
                 ret_ttl = getttl(ttl)
                 if ret_ttl is None:
                     if pkt.haslayer(TCP) or pkt.haslayer(UDP):
-                        print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), t.bold_magenta("%s" % pkt_type), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "TTL", t.red("{:>7}".format(ttl)), "IP src addr", t.green("{:>15}".format(ipsrc)), "IP dst addr", t.green("{:>15}".format(ipdst)), "src port", t.yellow("{:>5}".format(sport)), "dst port",  t.yellow("{:>5}".format(dport))
+                        print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), t.bold_magenta("{:>4}".format(pkt_type)), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "TTL", t.red("{:>7}".format(ttl)), "IP src addr", t.green("{:>15}".format(ipsrc)), "IP dst addr", t.green("{:>15}".format(ipdst)), "src port", t.yellow("{:>5}".format(sport)), "dst port",  t.yellow("{:>5}".format(dport))
                     elif pkt.haslayer(ICMP):
-                        print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), t.bold_magenta("%s" % pkt_type), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "TTL", t.red("{:>7}".format(ttl)), "IP src addr", t.green("{:>15}".format(ipsrc)), "IP dst addr", t.green("{:>15}".format(ipdst))
+                        print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), t.bold_magenta("{:>4}".format(pkt_type)), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "TTL", t.red("{:>7}".format(ttl)), "IP src addr", t.green("{:>15}".format(ipsrc)), "IP dst addr", t.green("{:>15}".format(ipdst))
                         if pkt.getlayer(ICMP).type == 0x08:
                             print t.move_right, t.move_right, t.move_right, t.move_right, "ICMP Message type", t.green("Echo request"), "Sequence number", t.cyan("%s" % pkt.getlayer(ICMP).seq)
                         elif pkt.getlayer(ICMP).type == 0x00:
                             print t.move_right, t.move_right,t.move_right, t.move_right, "ICMP Message type", t.green("Echo response"), "Sequence number", t.cyan("%s" % pkt.getlayer(ICMP).seq)
                 else:
                     if pkt.haslayer(TCP) or pkt.haslayer(UDP):
-                        print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), t.bold_magenta("%s" % pkt_type), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "OSv", t.red("%s" % ret_ttl), "IP src addr", t.green("{:>15}".format(ipsrc)), "IP dst addr", t.green("{:>15}".format(ipdst)), "src port", t.yellow("{:>5}".format(sport)), "dst port",  t.yellow("{:>5}".format(dport))
+                        print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), t.bold_magenta("{:>4}".format(pkt_type)), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "OSv", t.red("%s" % ret_ttl), "IP src addr", t.green("{:>15}".format(ipsrc)), "IP dst addr", t.green("{:>15}".format(ipdst)), "src port", t.yellow("{:>5}".format(sport)), "dst port",  t.yellow("{:>5}".format(dport))
                     elif pkt.haslayer(ICMP):                        
-                        print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), t.bold_magenta("%s" % pkt_type), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "OSv", t.red("%s" % ret_ttl), "IP src addr", t.green("{:>15}".format(ipsrc)), "IP dst addr", t.green("{:>15}".format(ipdst))
+                        print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), t.bold_magenta("{:>4}".format(pkt_type)), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "OSv", t.red("%s" % ret_ttl), "IP src addr", t.green("{:>15}".format(ipsrc)), "IP dst addr", t.green("{:>15}".format(ipdst))
                         if pkt.getlayer(ICMP).type == 0x08:
                             print t.move_right, t.move_right,t.move_right, t.move_right, "ICMP Message type", t.green("Echo request"), "Sequence number", t.cyan("%s" % pkt.getlayer(ICMP).seq)
                         elif pkt.getlayer(ICMP).type == 0x00:
