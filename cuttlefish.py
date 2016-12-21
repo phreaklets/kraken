@@ -86,11 +86,11 @@ class DbConnector:
 def getttl(ttl):
     # Get TTL
     if ttl == 64:
-        return "Linux"
+        return "{:>7}".format("Linux")
     elif ttl == 128:
-        return "Windows"
+        return "{:>7}".format("Windows")
     elif ttl == 254:
-        return "Solaris"
+        return "{:>7}".format("Solaris")
     else:
         return None
     
@@ -166,7 +166,7 @@ def threaded_sniff():
                 ret_ttl = getttl(ttl)
                 if ret_ttl is None:
                     if pkt.haslayer(TCP) or pkt.haslayer(UDP):
-                        print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), t.bold_magenta("%s" % pkt_type), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "TTL", t.red("%d" % ttl), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst), "src port", t.yellow("%s" % sport), "dst port",  t.yellow("%s" % dport)
+                        print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), t.bold_magenta("%s" % pkt_type), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "TTL", t.red("%d" % ttl), "IP src addr", t.green("{:>15}".format(ipsrc)), "IP dst addr", t.green("{:>15}".format(ipdst)), "src port", t.yellow("%s" % sport), "dst port",  t.yellow("%s" % dport)
                     elif pkt.haslayer(ICMP):
                         print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), t.bold_magenta("%s" % pkt_type), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "TTL", t.red("%d" % ttl), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst)
                         if pkt.getlayer(ICMP).type == 0x08:
@@ -175,7 +175,7 @@ def threaded_sniff():
                             print t.move_right, t.move_right,t.move_right, t.move_right, "ICMP Message type", t.green("Echo response"), "Sequence number", t.cyan("%s" % pkt.getlayer(ICMP).seq)
                 else:
                     if pkt.haslayer(TCP) or pkt.haslayer(UDP):
-                        print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), t.bold_magenta("%s" % pkt_type), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "OS", t.red("%s" % ret_ttl), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst), "src port", t.yellow("%s" % sport), "dst port",  t.yellow("%s" % dport)
+                        print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), t.bold_magenta("%s" % pkt_type), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "OS", t.red("%s" % ret_ttl), "IP src addr", t.green("{:>15}".format(ipsrc)), "IP dst addr", t.green("{:>15}".format(ipdst)), "src port", t.yellow("%s" % sport), "dst port",  t.yellow("%s" % dport)
                     elif pkt.haslayer(ICMP):                        
                         print "T", t.blue("%s" % datetime.datetime.now().strftime('%H:%M:%S')), t.bold_magenta("%s" % pkt_type), "MAC src addr", t.cyan("%s" % ethsrc), "MAC dst addr", t.cyan("%s" % ethdst), "OS", t.red("%s" % ret_ttl), "IP src addr", t.green("%s" % ipsrc), "IP dst addr", t.green("%s" % ipdst)
                         if pkt.getlayer(ICMP).type == 0x08:
